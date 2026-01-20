@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 
 const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Teams", href: "/teams", icon: Users },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Members", href: "/members", icon: UserCircle },
