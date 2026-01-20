@@ -45,7 +45,7 @@ export function Sidebar() {
                 </div>
                 {!collapsed && (
                     <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                        TaskFlow
+                        Filos
                     </span>
                 )}
             </div>

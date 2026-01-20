@@ -38,7 +38,7 @@ export default function Home() {
           <div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
-              Sign in to your TaskFlow account
+              Sign in to your Filos account
             </CardDescription>
           </div>
         </CardHeader>

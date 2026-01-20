@@ -29,7 +29,7 @@ export default function SignupPage() {
                     <div>
                         <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
                         <CardDescription className="text-muted-foreground mt-2">
-                            Get started with TaskFlow today
+                            Get started with Filos today
                         </CardDescription>
                     </div>
                 </CardHeader>

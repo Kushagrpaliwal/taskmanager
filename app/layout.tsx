@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TaskFlow | Modern Team & Task Management",
+  title: "Filos | Modern Team & Task Management",
   description: "A modern SaaS platform for team collaboration and task management",
 };
 
