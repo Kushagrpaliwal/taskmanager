@@ -14,51 +14,17 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const workspaces = [
-    { id: 1, name: "Acme Corp", color: "bg-blue-500" },
-    { id: 2, name: "Startup Inc", color: "bg-purple-500" },
-    { id: 3, name: "Personal", color: "bg-green-500" },
-];
+
+
+import { MobileNav } from "@/components/MobileNav";
 
 export function TopBar() {
     return (
-        <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 bg-card/80 backdrop-blur-xl border-b border-border">
-            {/* Left Section - Workspace Switcher */}
-            <div className="flex items-center gap-4">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            className="flex items-center gap-2 px-3 py-2 h-auto rounded-xl hover:bg-accent"
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                <span className="text-sm font-bold text-white">A</span>
-                            </div>
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm font-semibold">Acme Corp</span>
-                                <span className="text-xs text-muted-foreground">Pro Plan</span>
-                            </div>
-                            <ChevronDown className="w-4 h-4 text-muted-foreground ml-1" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-56">
-                        <DropdownMenuLabel>Switch Workspace</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {workspaces.map((workspace) => (
-                            <DropdownMenuItem key={workspace.id} className="flex items-center gap-3 cursor-pointer">
-                                <div className={`w-6 h-6 rounded-md ${workspace.color} flex items-center justify-center`}>
-                                    <span className="text-xs font-bold text-white">{workspace.name[0]}</span>
-                                </div>
-                                <span>{workspace.name}</span>
-                            </DropdownMenuItem>
-                        ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="flex items-center gap-3 cursor-pointer text-primary">
-                            <Plus className="w-4 h-4" />
-                            <span>Create Workspace</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+        <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 md:px-6 bg-card/80 backdrop-blur-xl border-b border-border">
+            {/* Left Section - Mobile Nav & Workspace Switcher */}
+            <div className="flex items-center gap-2 md:gap-4">
+                <MobileNav />
+
             </div>
 
             {/* Center Section - Search */}

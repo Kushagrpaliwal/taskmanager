@@ -7,29 +7,23 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, ArrowRight, Github, Mail } from "lucide-react";
+import { ArrowRight, Github } from "lucide-react";
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4">
-            {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl" />
-            </div>
-
-            <Card className="w-full max-w-md relative border-0 shadow-2xl shadow-primary/10 backdrop-blur-sm bg-white/90">
-                <CardHeader className="space-y-4 text-center pb-2">
-                    {/* Logo */}
-                    <div className="flex justify-center">
-                        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-purple-600 shadow-xl shadow-primary/30">
-                            <Sparkles className="w-7 h-7 text-white" />
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <Card className="w-full max-w-sm border-0 shadow-none sm:border sm:border-border sm:shadow-sm">
+                <CardHeader className="text-center pb-2 space-y-3">
+                    <div className="flex justify-center mb-2">
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-primary text-primary-foreground flex items-center justify-center rounded text-xs font-bold">F</div>
+                            <span className="font-semibold text-lg">filOs</span>
                         </div>
                     </div>
                     <div>
-                        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-                        <CardDescription className="text-muted-foreground mt-2">
-                            Sign in to your Filos account
+                        <CardTitle className="text-xl font-bold">Log in to Filos</CardTitle>
+                        <CardDescription className="text-muted-foreground mt-1 text-sm">
+                            Welcome back. Please enter your details.
                         </CardDescription>
                     </div>
                 </CardHeader>
@@ -37,8 +31,8 @@ export default function LoginPage() {
                 <CardContent className="space-y-4 pt-4">
                     {/* Social Login Buttons */}
                     <div className="grid grid-cols-2 gap-3">
-                        <Button variant="outline" className="rounded-xl h-11 hover:bg-accent/80">
-                            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <Button variant="outline" className="rounded-sm h-9 border-border text-foreground hover:bg-secondary font-normal text-sm">
+                            <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                                 <path
                                     fill="currentColor"
                                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -58,24 +52,24 @@ export default function LoginPage() {
                             </svg>
                             Google
                         </Button>
-                        <Button variant="outline" className="rounded-xl h-11 hover:bg-accent/80">
-                            <Github className="w-5 h-5 mr-2" />
+                        <Button variant="outline" className="rounded-sm h-9 border-border text-foreground hover:bg-secondary font-normal text-sm">
+                            <Github className="w-4 h-4 mr-2" />
                             GitHub
                         </Button>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative my-2">
                         <div className="absolute inset-0 flex items-center">
                             <Separator className="w-full" />
                         </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-3 text-muted-foreground">or continue with</span>
+                        <div className="relative flex justify-center text-[10px] uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">or</span>
                         </div>
                     </div>
 
                     {/* Form */}
                     <div className="space-y-4">
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <Label htmlFor="email" className="text-sm font-medium">
                                 Email
                             </Label>
@@ -83,18 +77,18 @@ export default function LoginPage() {
                                 id="email"
                                 type="email"
                                 placeholder="name@company.com"
-                                className="rounded-xl h-11 bg-accent/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:bg-white"
+                                className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
                             />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password" className="text-sm font-medium">
                                     Password
                                 </Label>
                                 <Link
                                     href="/forgot-password"
-                                    className="text-xs text-primary hover:text-primary/80 transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
                                 >
                                     Forgot password?
                                 </Link>
@@ -103,28 +97,27 @@ export default function LoginPage() {
                                 id="password"
                                 type="password"
                                 placeholder="••••••••"
-                                className="rounded-xl h-11 bg-accent/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:bg-white"
+                                className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
                             />
                         </div>
 
                         <div className="flex items-center space-x-2">
-                            <Checkbox id="remember" className="rounded-md" />
-                            <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                                Remember me for 30 days
+                            <Checkbox id="remember" className="rounded-[3px] border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+                            <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer font-normal">
+                                Remember me
                             </Label>
                         </div>
                     </div>
 
-                    <Button className="w-full h-11 rounded-xl bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg shadow-primary/25 transition-all group">
+                    <Button className="w-full h-9 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm shadow-none mt-2">
                         Sign in
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                 </CardContent>
 
-                <CardFooter className="flex flex-col gap-4 pt-2">
+                <CardFooter className="flex flex-col gap-4 pt-2 pb-6">
                     <p className="text-sm text-center text-muted-foreground">
                         Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="font-medium text-primary hover:text-primary/80 transition-colors">
+                        <Link href="/signup" className="font-medium text-foreground hover:underline underline-offset-4">
                             Sign up
                         </Link>
                     </p>

@@ -17,11 +17,9 @@ import {
     Paperclip,
     Smile,
     Send,
-    Image,
-    File,
-    Check,
-    CheckCheck,
     Plus,
+    MessageSquare,
+    ArrowLeft,
 } from "lucide-react";
 
 const conversations = [
@@ -29,7 +27,7 @@ const conversations = [
         id: 1,
         name: "Sarah Chen",
         avatar: "https://i.pravatar.cc/150?img=1",
-        lastMessage: "I&apos;ll send you the updated designs shortly!",
+        lastMessage: "I'll send you the updated designs shortly!",
         time: "2 min",
         unread: 2,
         online: true,
@@ -56,38 +54,6 @@ const conversations = [
         online: true,
         type: "direct",
     },
-    {
-        id: 4,
-        name: "Engineering",
-        avatar: null,
-        lastMessage: "James: Deployed to staging",
-        time: "2 hours",
-        unread: 0,
-        online: false,
-        type: "group",
-        members: 6,
-    },
-    {
-        id: 5,
-        name: "Emma Wilson",
-        avatar: "https://i.pravatar.cc/150?img=5",
-        lastMessage: "Can we schedule a quick call?",
-        time: "3 hours",
-        unread: 0,
-        online: false,
-        type: "direct",
-    },
-    {
-        id: 6,
-        name: "Product Strategy",
-        avatar: null,
-        lastMessage: "You: I&apos;ll prepare the roadmap",
-        time: "Yesterday",
-        unread: 0,
-        online: false,
-        type: "group",
-        members: 3,
-    },
 ];
 
 const messages = [
@@ -95,129 +61,95 @@ const messages = [
         id: 1,
         sender: "Sarah Chen",
         avatar: "https://i.pravatar.cc/150?img=1",
-        content: "Hey! I&apos;ve been working on the new dashboard designs. Can you take a look when you have time?",
+        content: "Hey! I've been working on the new dashboard designs. Can you take a look when you have time?",
         time: "10:30 AM",
         isMe: false,
-        status: "read",
     },
     {
         id: 2,
         sender: "Me",
         avatar: "",
-        content: "Sure, I&apos;d love to see them! Send them over whenever you&apos;re ready.",
+        content: "Sure, I'd love to see them! Send them over whenever you're ready.",
         time: "10:32 AM",
         isMe: true,
-        status: "read",
     },
     {
         id: 3,
         sender: "Sarah Chen",
         avatar: "https://i.pravatar.cc/150?img=1",
-        content: "Perfect! I&apos;ll share the Figma link in a bit. I&apos;ve made some significant changes to the analytics section based on the feedback from last week.",
+        content: "Perfect! I'll share the Figma link in a bit.",
         time: "10:35 AM",
         isMe: false,
-        status: "read",
-    },
-    {
-        id: 4,
-        sender: "Me",
-        avatar: "",
-        content: "Sounds great! I remember we discussed adding more visualization options. Did you include those?",
-        time: "10:38 AM",
-        isMe: true,
-        status: "read",
-    },
-    {
-        id: 5,
-        sender: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        content: "Yes! I added three new chart types and a customizable widget system. The team can now create their own dashboard layouts too.",
-        time: "10:42 AM",
-        isMe: false,
-        status: "read",
-    },
-    {
-        id: 6,
-        sender: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        content: "I&apos;ll send you the updated designs shortly!",
-        time: "10:45 AM",
-        isMe: false,
-        status: "delivered",
     },
 ];
 
 export default function ChatPage() {
-    const [selectedConversation, setSelectedConversation] = useState(conversations[0]);
+    const [selectedConversation, setSelectedConversation] = useState<typeof conversations[0] | null>(null);
     const [messageInput, setMessageInput] = useState("");
+
+    // Mobile: if selectedConversation is null, show list. Else show chat.
+    // Desktop: Show both side-by-side.
 
     return (
         <AppLayout>
-            <div className="flex h-[calc(100vh-8rem)] gap-6">
-                {/* Conversations List */}
-                <div className="w-80 flex flex-col bg-card rounded-2xl border border-border/50 shadow-lg overflow-hidden">
-                    {/* Header */}
+            <div className="flex h-[calc(100vh-2rem)] border-t border-border mt-2">
+                {/* Sidebar */}
+                <div className={cn(
+                    "w-full md:w-80 border-r border-border flex flex-col bg-background",
+                    selectedConversation ? "hidden md:flex" : "flex"
+                )}>
                     <div className="p-4 border-b border-border">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold">Messages</h2>
-                            <Button size="icon" variant="ghost" className="rounded-xl h-9 w-9">
+                            <h2 className="font-semibold text-lg flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4" />
+                                Messages
+                            </h2>
+                            <Button size="icon" variant="ghost" className="h-8 w-8">
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search conversations..."
-                                className="pl-10 rounded-xl bg-accent/50 border-0"
+                                placeholder="Search..."
+                                className="pl-9 h-9 rounded-sm bg-secondary/50 border-0 focus-visible:ring-0"
                             />
                         </div>
                     </div>
 
-                    {/* Conversations */}
                     <ScrollArea className="flex-1">
-                        <div className="p-2">
+                        <div className="p-2 space-y-1">
                             {conversations.map((conversation) => (
                                 <button
                                     key={conversation.id}
                                     onClick={() => setSelectedConversation(conversation)}
                                     className={cn(
-                                        "w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all",
-                                        selectedConversation.id === conversation.id
-                                            ? "bg-primary/10"
-                                            : "hover:bg-accent/50"
+                                        "w-full flex items-center gap-3 p-3 rounded-sm text-left transition-colors",
+                                        selectedConversation?.id === conversation.id
+                                            ? "bg-secondary"
+                                            : "hover:bg-secondary/50"
                                     )}
                                 >
                                     <div className="relative">
-                                        {conversation.type === "direct" ? (
-                                            <Avatar className="h-12 w-12 border-2 border-background">
-                                                <AvatarImage src={conversation.avatar || undefined} />
-                                                <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">
-                                                    {conversation.name.split(" ").map((n) => n[0]).join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        ) : (
-                                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold">
-                                                {conversation.members}
-                                            </div>
-                                        )}
+                                        <Avatar className="h-10 w-10 border border-border">
+                                            <AvatarImage src={conversation.avatar || undefined} />
+                                            <AvatarFallback className="bg-background text-xs">
+                                                {conversation.name[0]}
+                                            </AvatarFallback>
+                                        </Avatar>
                                         {conversation.online && (
-                                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-background" />
+                                            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <p className="font-medium truncate">{conversation.name}</p>
-                                            <span className="text-xs text-muted-foreground">{conversation.time}</span>
+                                            <p className="font-medium text-sm truncate">{conversation.name}</p>
+                                            <span className="text-[10px] text-muted-foreground">{conversation.time}</span>
                                         </div>
-                                        <p className="text-sm text-muted-foreground truncate">
+                                        <p className="text-xs text-muted-foreground truncate">
                                             {conversation.lastMessage}
                                         </p>
                                     </div>
-                                    {conversation.unread > 0 && (
-                                        <Badge className="bg-primary text-primary-foreground rounded-full h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                                            {conversation.unread}
-                                        </Badge>
-                                    )}
                                 </button>
                             ))}
                         </div>
@@ -225,121 +157,114 @@ export default function ChatPage() {
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 flex flex-col bg-card rounded-2xl border border-border/50 shadow-lg overflow-hidden">
-                    {/* Chat Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-border">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={selectedConversation.avatar || undefined} />
-                                <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">
-                                    {selectedConversation.name.split(" ").map((n) => n[0]).join("")}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="font-semibold">{selectedConversation.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {selectedConversation.online ? (
-                                        <span className="flex items-center gap-1">
-                                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                            Online
-                                        </span>
-                                    ) : (
-                                        "Last seen 2 hours ago"
-                                    )}
-                                </p>
-                            </div>
+                <div className={cn(
+                    "flex-1 flex flex-col bg-background",
+                    !selectedConversation ? "hidden md:flex h-full items-center justify-center text-muted-foreground" : "flex",
+                )}>
+                    {!selectedConversation ? (
+                        <div className="hidden md:flex flex-col items-center gap-2">
+                            <MessageSquare className="w-12 h-12 opacity-20" />
+                            <p>Select a conversation to start messaging</p>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="rounded-xl">
-                                <Phone className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="rounded-xl">
-                                <Video className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="rounded-xl">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Messages */}
-                    <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-4">
-                            {/* Date Separator */}
-                            <div className="flex items-center gap-4">
-                                <Separator className="flex-1" />
-                                <span className="text-xs text-muted-foreground px-2">Today</span>
-                                <Separator className="flex-1" />
-                            </div>
-
-                            {messages.map((message) => (
-                                <div
-                                    key={message.id}
-                                    className={cn(
-                                        "flex gap-3",
-                                        message.isMe && "flex-row-reverse"
-                                    )}
-                                >
-                                    {!message.isMe && (
-                                        <Avatar className="h-8 w-8 mt-1">
-                                            <AvatarImage src={message.avatar} />
-                                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                                {message.sender.split(" ").map((n) => n[0]).join("")}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    )}
-                                    <div className={cn("max-w-[70%]", message.isMe && "items-end")}>
-                                        <div
-                                            className={cn(
-                                                "rounded-2xl px-4 py-2.5",
-                                                message.isMe
-                                                    ? "bg-gradient-to-r from-primary to-purple-600 text-white rounded-br-md"
-                                                    : "bg-accent/50 rounded-bl-md"
-                                            )}
-                                        >
-                                            <p className="text-sm">{message.content}</p>
-                                        </div>
-                                        <div className={cn("flex items-center gap-1 mt-1", message.isMe && "justify-end")}>
-                                            <span className="text-[10px] text-muted-foreground">{message.time}</span>
-                                            {message.isMe && (
-                                                message.status === "read" ? (
-                                                    <CheckCheck className="h-3 w-3 text-blue-500" />
-                                                ) : (
-                                                    <Check className="h-3 w-3 text-muted-foreground" />
-                                                )
-                                            )}
-                                        </div>
+                    ) : (
+                        <>
+                            {/* Header */}
+                            <div className="h-16 border-b border-border flex items-center justify-between px-4 md:px-6">
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="md:hidden h-8 w-8 -ml-2"
+                                        onClick={() => setSelectedConversation(null)}
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Avatar className="h-8 w-8 border border-border">
+                                        <AvatarImage src={selectedConversation.avatar || undefined} />
+                                        <AvatarFallback className="bg-secondary text-xs">
+                                            {selectedConversation.name[0]}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-sm">{selectedConversation.name}</p>
+                                        <p className="text-[10px] text-muted-foreground">
+                                            {selectedConversation.online ? "Online" : "Offline"}
+                                        </p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-
-                    {/* Message Input */}
-                    <div className="p-4 border-t border-border">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" className="rounded-xl shrink-0">
-                                <Paperclip className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="rounded-xl shrink-0">
-                                <Image className="h-4 w-4" />
-                            </Button>
-                            <div className="relative flex-1">
-                                <Input
-                                    placeholder="Type a message..."
-                                    value={messageInput}
-                                    onChange={(e) => setMessageInput(e.target.value)}
-                                    className="pr-10 rounded-xl bg-accent/50 border-0 focus-visible:ring-2 focus-visible:ring-primary/20"
-                                />
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg">
-                                    <Smile className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Phone className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Video className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
-                            <Button size="icon" className="rounded-xl shrink-0 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg shadow-primary/25">
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
+
+                            {/* Messages */}
+                            <ScrollArea className="flex-1 p-6">
+                                <div className="space-y-6 w-full max-w-full">
+                                    {messages.map((message) => (
+                                        <div
+                                            key={message.id}
+                                            className={cn(
+                                                "flex gap-3",
+                                                message.isMe && "flex-row-reverse"
+                                            )}
+                                        >
+                                            {!message.isMe && (
+                                                <Avatar className="h-8 w-8 mt-1 border border-border">
+                                                    <AvatarImage src={message.avatar} />
+                                                    <AvatarFallback className="text-[10px]">{message.sender[0]}</AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                            <div className={cn("max-w-[70%]", message.isMe && "items-end")}>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-medium text-foreground">{message.sender}</span>
+                                                    <span className="text-[10px] text-muted-foreground">{message.time}</span>
+                                                </div>
+                                                <div
+                                                    className={cn(
+                                                        "rounded-sm px-4 py-2 border text-sm",
+                                                        message.isMe
+                                                            ? "bg-primary text-primary-foreground border-primary"
+                                                            : "bg-card border-border"
+                                                    )}
+                                                >
+                                                    <p>{message.content}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+
+                            {/* Input */}
+                            <div className="p-4 border-t border-border">
+                                <div className="w-full flex items-center gap-2 bg-secondary/30 p-2 rounded-sm border border-border">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                    <Input
+                                        placeholder="Type a message..."
+                                        value={messageInput}
+                                        onChange={(e) => setMessageInput(e.target.value)}
+                                        className="flex-1 bg-transparent border-0 focus-visible:ring-0 h-9"
+                                    />
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-transparent">
+                                        <Smile className="h-4 w-4" />
+                                    </Button>
+                                    <Button size="sm" className="h-8 px-3 rounded-sm">
+                                        <Send className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </AppLayout>
