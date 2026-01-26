@@ -19,7 +19,7 @@ git add .
 echo "📝 Committing..."
 git commit -m "$1" || exit 1
 
-echo "🚀 Pushing to origin/main..."
-git push origin main
+echo "🚀 Pushing to origin/term..."
+git push origin term
 
 echo "✅ Done!"
