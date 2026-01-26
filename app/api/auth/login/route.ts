@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import sql from "@/lib/db";
 import { HTTP_STATUS } from "@/lib/httpStatus";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT!;
+
+const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function POST(req: Request) {
     try {
@@ -40,7 +43,39 @@ export async function POST(req: Request) {
         }
 
         // 2️⃣ Generate ACCESS TOKEN (JWT)
+        const accessToken = jwt.sign(
+            { userId: user.id },
+            JWT_SECRET,
+            { expiresIn: "15m" }
+        )
 
+        const refreshToken = crypto.randomBytes(40).toString("hex")
+
+        const refreshExpire = new Date();
+        refreshExpire.setDate(refreshExpire.getDate() + 30);
+
+        await sql`
+            INSERT INTO refresh_tokens (user_id,token,expires_at)
+            values(${user.id},${refreshToken},${refreshExpire})
+        `
+
+        const cookieStore = await cookies();
+
+        cookieStore.set("access_token", accessToken, {
+            httpOnly: true,
+            secure: process.env.BUN_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 15,
+        })
+
+        cookieStore.set("refresh_token", refreshToken, {
+            httpOnly: true,
+            secure: process.env.BUN_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 30,
+        })
 
         // 5️⃣ Success
         return NextResponse.json(

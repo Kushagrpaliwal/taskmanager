@@ -10,10 +10,11 @@ import {
     UserCircle,
     MessageSquare,
     Activity,
-    Settings,
+
     ChevronLeft,
     ChevronDown,
     Plus,
+    LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +27,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const workspaces = [
     { id: 1, name: "Acme Corp", color: "bg-primary" },
@@ -45,6 +47,7 @@ export const navigation = [
 export function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const router = useRouter();
 
     return (
         <aside
@@ -125,16 +128,19 @@ export function Sidebar() {
 
             {/* Bottom Section */}
             <div className="p-2 space-y-[2px]">
-                <Link
-                    href="/settings"
+                <button
+                    onClick={async () => {
+                        await fetch("/api/auth/logout");
+                        router.push("/")
+                    }}
                     className={cn(
-                        "flex items-center gap-3 px-3 py-1.5 rounded-sm text-sm transition-colors",
-                        "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        "w-full flex items-center gap-3 px-3 py-1.5 rounded-sm text-sm transition-colors",
+                        "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-left"
                     )}
                 >
-                    <Settings className="w-4 h-4 shrink-0 opacity-70" />
-                    {!collapsed && <span>Settings</span>}
-                </Link>
+                    <LogOut className="w-4 h-4 shrink-0 opacity-70" />
+                    {!collapsed && <span>Logout</span>}
+                </button>
 
                 {/* Collapse Button */}
                 <Button
