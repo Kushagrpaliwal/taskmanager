@@ -8,8 +8,56 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Github } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner"
 
 export default function SignupPage() {
+
+    const [firstName, setFirstname] = useState<string>("")
+    const [lastName, setLastName] = useState<string>("")
+    const [email, setEmail] = useState<string>("")
+    const [password, setPassword] = useState<string>("")
+    const [confirmPassword, setConfirmPassword] = useState<string>("")
+
+    const formsubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault() // 🔥 stops page reload
+
+        const res = await fetch("/api/auth/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                firstname: firstName,
+                lastname: lastName,
+                email: email,
+                password: password,
+                confirmPassword: confirmPassword
+            })
+        })
+
+        const data = await res.json();
+        if (!res.ok) {
+            console.log("Unable to Create the user", data);
+            toast.error(data.error || "Unable to Create the user",
+                { position: "top-right", className: "bg-black text-white border-none" });
+            return;
+        } else {
+            console.log("User Successfully Created", data)
+            toast.success("User Successfully Created",
+                { position: "top-right", className: "bg-black text-white border-none" });
+
+            setFirstname("")
+            setLastName("")
+            setEmail("")
+            setPassword("")
+            setConfirmPassword("")
+        }
+
+        console.log("Form Submited")
+    }
+
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <Card className="w-full max-w-sm border-0 shadow-none sm:border sm:border-border sm:shadow-sm">
@@ -68,7 +116,7 @@ export default function SignupPage() {
                     </div>
 
                     {/* Form */}
-                    <div className="space-y-4">
+                    <form onSubmit={formsubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label htmlFor="firstName" className="text-sm font-medium">
@@ -76,6 +124,8 @@ export default function SignupPage() {
                                 </Label>
                                 <Input
                                     id="firstName"
+                                    value={firstName}
+                                    onChange={(e) => setFirstname(e.target.value)}
                                     type="text"
                                     placeholder="John"
                                     className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
@@ -87,6 +137,8 @@ export default function SignupPage() {
                                 </Label>
                                 <Input
                                     id="lastName"
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
                                     type="text"
                                     placeholder="Doe"
                                     className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
@@ -100,6 +152,8 @@ export default function SignupPage() {
                             </Label>
                             <Input
                                 id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 type="email"
                                 placeholder="name@company.com"
                                 className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
@@ -112,8 +166,23 @@ export default function SignupPage() {
                             </Label>
                             <Input
                                 id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 type="password"
                                 placeholder="Create a strong password"
+                                className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="password" className="text-sm font-medium">
+                                Confirm Password
+                            </Label>
+                            <Input
+                                id="confirmpassword"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                type="password"
+                                placeholder="Confirm Password"
                                 className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
                             />
                             <p className="text-[10px] text-muted-foreground">
@@ -127,11 +196,11 @@ export default function SignupPage() {
                                 I agree to the <Link href="/terms" className="text-foreground underline underline-offset-2">Terms of Service</Link> and <Link href="/privacy" className="text-foreground underline underline-offset-2">Privacy Policy</Link>
                             </Label>
                         </div>
-                    </div>
+                        <Button type="submit" className="w-full h-9 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm shadow-none mt-2">
+                            Create account
+                        </Button>
+                    </form>
 
-                    <Button className="w-full h-9 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm shadow-none mt-2">
-                        Create account
-                    </Button>
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-4 pt-2 pb-6">

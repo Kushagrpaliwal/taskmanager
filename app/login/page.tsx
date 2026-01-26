@@ -8,8 +8,51 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Github } from "lucide-react";
+import { useState, useEffect, FormEvent } from "react";
+import { toast } from "sonner"
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+
+    const [email, setEmail] = useState<string>("")
+    const [password, setPassword] = useState<string>("")
+
+    const router = useRouter();
+
+    const formsubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            })
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.log("Login Failed")
+                toast.error(data.error || "Unable to Login",
+                    { position: "top-right", className: "bg-black text-white border-none" });
+            } else {
+                console.log("Login Successfull", data);
+                toast.success("Login Success",
+                    { position: "top-right", className: "bg-black text-white border-none" });
+                router.push("/dashboard")
+            }
+        } catch (error) {
+            console.log("There is some error reaching the login", error)
+            toast.error("Unable to Login",
+                { position: "top-right", className: "bg-black text-white border-none" });
+        }
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <Card className="w-full max-w-sm border-0 shadow-none sm:border sm:border-border sm:shadow-sm">
@@ -68,13 +111,15 @@ export default function LoginPage() {
                     </div>
 
                     {/* Form */}
-                    <div className="space-y-4">
+                    <form onSubmit={formsubmit} className="space-y-4">
                         <div className="space-y-1.5">
                             <Label htmlFor="email" className="text-sm font-medium">
                                 Email
                             </Label>
                             <Input
                                 id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 type="email"
                                 placeholder="name@company.com"
                                 className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
@@ -95,6 +140,8 @@ export default function LoginPage() {
                             </div>
                             <Input
                                 id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 type="password"
                                 placeholder="••••••••"
                                 className="rounded-sm h-9 border-border bg-transparent focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 px-3"
@@ -107,11 +154,12 @@ export default function LoginPage() {
                                 Remember me
                             </Label>
                         </div>
-                    </div>
 
-                    <Button className="w-full h-9 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm shadow-none mt-2">
-                        Sign in
-                    </Button>
+                        <Button type="submit" className="w-full h-9 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 font-medium text-sm shadow-none mt-2">
+                            Sign in
+                        </Button>
+                    </form>
+
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-4 pt-2 pb-6">

@@ -1,9 +1,8 @@
-import postgres from "postgres"
+import "dotenv/config";
+import postgres from "postgres";
 
 const sql = postgres(process.env.DATABASE_URL!, {
-    max: 10,           // connection pool
-    idle_timeout: 20,
-    connect_timeout: 10,
-})
+    max: 10,
+});
 
-export default sql
+export default sql;
