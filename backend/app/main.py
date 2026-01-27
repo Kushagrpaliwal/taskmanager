@@ -1,11 +1,18 @@
 from fastapi import FastAPI
-from app.routers import task
-from app.routers import member
+from fastapi.middleware.cors import CORSMiddleware
+from app.routers import users
 
 app = FastAPI(title="Task Manager API")
 
-app.include_router(task.router)
-app.include_router(member.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # your frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(users.router)
 
 @app.get("/")
 async def health():

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
     Table,
     TableBody,
@@ -16,13 +17,24 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
     Plus,
     Search,
     MoreHorizontal,
     Mail,
     Filter,
     Users,
+    Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const members = [
     {
@@ -59,6 +71,14 @@ const members = [
 
 export default function MembersPage() {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+    });
 
     const toggleMember = (id: number) => {
         setSelectedMembers((prev) =>
@@ -70,6 +90,74 @@ export default function MembersPage() {
         setSelectedMembers((prev) =>
             prev.length === members.length ? [] : members.map((m) => m.id)
         );
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const resetForm = () => {
+        setFormData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            password: "",
+        });
+    };
+
+    const handleAddMember = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Basic validation
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+            toast.error("Please fill in all fields");
+            return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            toast.error("Please enter a valid email address");
+            return;
+        }
+
+        // Password validation
+        if (formData.password.length < 6) {
+            toast.error("Password must be at least 6 characters");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            // Simulate API call - replace with actual API call
+            await fetch("http://127.0.0.1:8000/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    firstname: formData.firstName,
+                    lastname: formData.lastName,
+                    email: formData.email,
+                    password: formData.password,
+                }),
+            });
+
+            // Success
+            toast.success("Member added successfully!", {
+                description: `${formData.firstName} ${formData.lastName} has been added to the team.`,
+            });
+            resetForm();
+            setIsAddModalOpen(false);
+        } catch (error) {
+            toast.error("Failed to add member", {
+                description: "Something went wrong. Please try again.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -98,10 +186,99 @@ export default function MembersPage() {
                             <Filter className="w-3.5 h-3.5 mr-2" />
                             Filter
                         </Button>
-                        <Button size="sm" className="h-8 rounded-sm bg-primary text-primary-foreground text-xs font-medium shadow-none">
-                            <Plus className="w-3.5 h-3.5 mr-2" />
-                            Invite
-                        </Button>
+                        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" className="h-8 rounded-sm bg-primary text-primary-foreground text-xs font-medium shadow-none">
+                                    <Plus className="w-3.5 h-3.5 mr-2" />
+                                    Add
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>Add New Member</DialogTitle>
+                                    <DialogDescription>
+                                        Fill in the details below to add a new team member.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleAddMember} className="space-y-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="firstName">First Name</Label>
+                                            <Input
+                                                id="firstName"
+                                                name="firstName"
+                                                placeholder="John"
+                                                value={formData.firstName}
+                                                onChange={handleInputChange}
+                                                disabled={isLoading}
+                                                className="h-9"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="lastName">Last Name</Label>
+                                            <Input
+                                                id="lastName"
+                                                name="lastName"
+                                                placeholder="Doe"
+                                                value={formData.lastName}
+                                                onChange={handleInputChange}
+                                                disabled={isLoading}
+                                                className="h-9"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            placeholder="john.doe@example.com"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="h-9"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="h-9"
+                                        />
+                                    </div>
+                                    <DialogFooter className="pt-4">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                resetForm();
+                                                setIsAddModalOpen(false);
+                                            }}
+                                            disabled={isLoading}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" disabled={isLoading}>
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Adding...
+                                                </>
+                                            ) : (
+                                                "Add Member"
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
 

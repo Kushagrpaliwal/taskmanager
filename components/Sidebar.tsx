@@ -9,7 +9,7 @@ import {
     CheckSquare,
     UserCircle,
     MessageSquare,
-    Activity,
+    Bell,
 
     ChevronLeft,
     ChevronDown,
@@ -41,7 +41,7 @@ export const navigation = [
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Members", href: "/members", icon: UserCircle },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Activity", href: "/activity", icon: Activity },
+    { name: "Notifications", href: "/activity", icon: Bell },
 ];
 
 export function Sidebar() {

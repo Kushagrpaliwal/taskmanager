@@ -38,5 +38,7 @@ Client JSON
 
 
 ## Start the server
+python -m venv venv
+source venv/bin/activate
 uvicorn app.main:app --reload
 
