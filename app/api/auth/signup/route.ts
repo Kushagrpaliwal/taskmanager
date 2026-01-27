@@ -23,9 +23,25 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Password doesn't Matched" }, { status: HTTP_STATUS.BAD_REQUEST })
         }
 
+        const prefix = 'CMP'
+        let randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+        let code = `${prefix}-${randomPart}`
+
+        let duplicate = await sql`
+            SELECT id FROM users WHERE companyCode = ${code}
+        `
+
+        while (duplicate.length > 0) {
+            randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+            code = `${prefix}-${randomPart}`
+            duplicate = await sql`
+                SELECT id FROM users WHERE companyCode = ${code}
+            `
+        }
+
         const user = await sql`
-          INSERT INTO users (firstname,lastname,email,password) VALUES (${firstname} , ${lastname} , ${email} , ${password})
-          RETURNING id , firstname , lastname , email
+          INSERT INTO users (firstname,lastname,email,password,companyCode) VALUES (${firstname} , ${lastname} , ${email} , ${password} , ${code})
+          RETURNING id , firstname , lastname , email , companyCode 
         `
 
         return NextResponse.json({ sucess: user }, { status: HTTP_STATUS.CREATED })

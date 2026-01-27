@@ -11,3 +11,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+    role = Column(String(50), nullable=False, default="Admin")
+    team = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False, default="active")
+    companyCode = Column(String(50), nullable=False)

@@ -12,7 +12,25 @@ const table = async () => {
             email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )`
+            )
+        `
+
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS role VARCHAR(255) DEFAULT 'Admin'
+        `
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS team VARCHAR(255) 
+        `
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS status VARCHAR(255) DEFAULT 'active'
+        `
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS companyCode VARCHAR(20) UNIQUE
+        `;
 
         console.log("Table Created Successfully")
     }

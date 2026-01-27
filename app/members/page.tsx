@@ -80,6 +80,8 @@ export default function MembersPage() {
         password: "",
     });
 
+    const [users, setUsers] = useState([])
+
     const toggleMember = (id: number) => {
         setSelectedMembers((prev) =>
             prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
