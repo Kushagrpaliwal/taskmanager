@@ -16,7 +16,7 @@ async function refreshTokens() {
     }
 
     const tokens = await sql`
-            SELECT id , user_id , memberCode , expires_at FROM refresh_tokens WHERE token = ${refreshToken}
+            SELECT id , user_id , memberCode , companycode , expires_at FROM refresh_tokens WHERE token = ${refreshToken}
         `
 
     if (tokens.length === 0) {
@@ -27,15 +27,15 @@ async function refreshTokens() {
 
     if (new Date(token.expires_at) < new Date()) {
         await sql`
-                DELETE FROM refresh_tokens WHERE token = ${token.id}
+                DELETE FROM refresh_tokens WHERE id = ${token.id}
             `
         return { error: "Token is Expired", status: HTTP_STATUS.UNAUTHORIZED };
     }
 
-    await sql` DELETE FROM refresh_tokens WHERE token = ${token.id}`
+    await sql` DELETE FROM refresh_tokens WHERE id = ${token.id}`
 
     const newAccessToken = jwt.sign(
-        { userId: token.user_id, memCode: token.membercode },
+        { userId: token.user_id, memcode: token.membercode, companycode: token.companycode },
         JWT_SECRET,
         { expiresIn: "15m" }
     )
@@ -46,7 +46,7 @@ async function refreshTokens() {
     newRefreshExpiry.setDate(newRefreshExpiry.getDate() + 30);
 
     await sql`
-            INSERT INTO refresh_tokens (user_id , token , memberCode, expires_at) values (${token.user_id},${newRefreshToken},${token.membercode},${newRefreshExpiry})
+            INSERT INTO refresh_tokens (user_id , token , memberCode, companycode, expires_at) values (${token.user_id},${newRefreshToken},${token.membercode},${token.companycode},${newRefreshExpiry})
         `
 
     cookieStore.set("access_token", newAccessToken, {

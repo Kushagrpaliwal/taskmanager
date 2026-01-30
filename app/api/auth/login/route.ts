@@ -51,8 +51,11 @@ export async function POST(req: Request) {
 
         const refreshToken = crypto.randomBytes(40).toString("hex")
 
+
         const refreshExpire = new Date();
         refreshExpire.setDate(refreshExpire.getDate() + 30);
+
+        await sql`DELETE FROM refresh_tokens WHERE user_id = ${user.id}`
 
         await sql`
             INSERT INTO refresh_tokens (user_id,token,memberCode,companycode,expires_at)

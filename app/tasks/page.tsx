@@ -59,80 +59,22 @@ interface NewTaskForm {
     tags: string;
 }
 
-const tasks = [
-    {
-        id: 1,
-        title: "Design new dashboard layout",
-        description: "Create wireframes and high-fidelity mockups for the new dashboard",
-        status: "inprogress",
-        priority: "high",
-        dueDate: "Jan 20",
-        comments: 5,
-        attachments: 3,
-        assignees: [
-            { name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?img=1" },
-            { name: "Michael Ross", avatar: "https://i.pravatar.cc/150?img=3" },
-        ],
-        tags: ["Design", "UI/UX"],
-    },
-    {
-        id: 2,
-        title: "Implement user authentication",
-        description: "Set up JWT authentication with refresh tokens",
-        status: "inprogress",
-        priority: "high",
-        dueDate: "Jan 22",
-        comments: 8,
-        attachments: 2,
-        assignees: [{ name: "James Miller", avatar: "https://i.pravatar.cc/150?img=8" }],
-        tags: ["Backend", "Security"],
-    },
-    {
-        id: 3,
-        title: "Write API documentation",
-        description: "Document all REST endpoints with examples",
-        status: "todo",
-        priority: "medium",
-        dueDate: "Jan 25",
-        comments: 2,
-        attachments: 0,
-        assignees: [{ name: "Emma Wilson", avatar: "https://i.pravatar.cc/150?img=5" }],
-        tags: ["Documentation"],
-    },
-    {
-        id: 4,
-        title: "Fix mobile responsive issues",
-        description: "Address layout problems on smaller screens",
-        status: "todo",
-        priority: "low",
-        dueDate: "Jan 28",
-        comments: 1,
-        attachments: 1,
-        assignees: [{ name: "Lisa Park", avatar: "https://i.pravatar.cc/150?img=10" }],
-        tags: ["Frontend", "Bug"],
-    },
-    {
-        id: 5,
-        title: "Set up CI/CD pipeline",
-        description: "Configure GitHub Actions for automated testing and deployment",
-        status: "done",
-        priority: "high",
-        dueDate: "Jan 18",
-        comments: 12,
-        attachments: 4,
-        assignees: [
-            { name: "Michael Ross", avatar: "https://i.pravatar.cc/150?img=3" },
-            { name: "James Miller", avatar: "https://i.pravatar.cc/150?img=8" },
-        ],
-        tags: ["DevOps"],
-    },
-];
-
 const columns = [
     { id: "todo", title: "To Do" },
     { id: "inprogress", title: "In Progress" },
     { id: "done", title: "Done" },
 ];
+
+interface Task {
+    id: string;
+    topic: string;
+    description: string;
+    priority: string;
+    assignee: string;
+    status: string;
+    tags: string;
+    duedate: string;
+}
 
 export default function TasksPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,9 +91,11 @@ export default function TasksPage() {
         dueDate: "",
         tags: "",
     });
+    const [tasks, setTasks] = useState<Task[]>([])
 
     useEffect(() => {
         fetchMembers();
+        fetchTask();
     }, []);
 
     const fetchMembers = async () => {
@@ -168,6 +112,17 @@ export default function TasksPage() {
             setIsLoadingMembers(false);
         }
     };
+
+    const fetchTask = async () => {
+        try {
+            const res = await fetch("/api/getTasks");
+            const data = await res.json();
+            setTasks(data.res)
+            console.log("All Tasks Fetched Successfully", data.res)
+        } catch (error) {
+            console.log("Unable to Fetch tasks server error")
+        }
+    }
 
     // Filter members based on search query and role filter
     const filteredMembers = members.filter((member) => {
@@ -198,8 +153,24 @@ export default function TasksPage() {
             return;
         }
 
+        const res = await fetch("/api/addTasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                topic: formData.title,
+                description: formData.description,
+                priority: formData.priority,
+                assignee: formData.assignedTo,
+                status: formData.status,
+                tags: formData.tags,
+                duedate: formData.dueDate,
+            })
+        })
+
         // TODO: Add API call to create task
-        console.log("Creating task:", formData);
+        console.log("Creating task:", res);
 
         // Reset form and close modal
         setFormData({
@@ -528,49 +499,59 @@ export default function TasksPage() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    {tasks.filter(t => t.status === column.id).map(task => (
-                                        <div key={task.id} className="group p-3 bg-card border border-border rounded-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
-                                            {/* Tags */}
-                                            <div className="flex gap-1 mb-2">
-                                                {task.tags.map(tag => (
-                                                    <span key={tag} className="px-1.5 py-0.5 rounded-sm bg-secondary text-[10px] text-muted-foreground font-medium">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                    {tasks.filter(t => t.status === column.id).map(task => {
+                                        const assigneeUser = members.find(m => m.membercode === task.assignee);
+                                        const taskTags = task.tags ? task.tags.split(',').map(t => t.trim()) : [];
 
-                                            <h4 className="text-sm font-medium text-foreground mb-1 group-hover:text-primary transition-colors">{task.title}</h4>
-
-                                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-dotted border-border">
-                                                <div className="flex -space-x-1.5">
-                                                    {task.assignees.map((a, i) => (
-                                                        <Avatar key={i} className="h-5 w-5 border border-background">
-                                                            <AvatarImage src={a.avatar} />
-                                                            <AvatarFallback className="text-[8px]">{a.name[0]}</AvatarFallback>
-                                                        </Avatar>
+                                        return (
+                                            <div key={task.id} className="group p-3 bg-card border border-border rounded-sm shadow-sm hover:shadow-md transition-all cursor-pointer">
+                                                {/* Tags */}
+                                                <div className="flex gap-1 mb-2 flex-wrap">
+                                                    {taskTags.map((tag, i) => (
+                                                        <span key={i} className="px-1.5 py-0.5 rounded-sm bg-secondary text-[10px] text-muted-foreground font-medium">
+                                                            {tag}
+                                                        </span>
                                                     ))}
                                                 </div>
-                                                <div className="flex items-center gap-3">
-                                                    {task.attachments > 0 && (
+
+                                                <h4 className="text-sm font-medium text-foreground mb-1 group-hover:text-primary transition-colors">{task.topic}</h4>
+                                                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
+
+                                                <div className="flex items-center justify-between mt-3 pt-3 border-t border-dotted border-border">
+                                                    <div className="flex items-center gap-2">
+                                                        {assigneeUser ? (
+                                                            <div className="flex items-center gap-1.5" title={`${assigneeUser.firstname} ${assigneeUser.lastname}`}>
+                                                                <Avatar className="h-5 w-5 border border-background">
+                                                                    <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                                                                        {assigneeUser.firstname[0]}{assigneeUser.lastname[0]}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">
+                                                                    {assigneeUser.firstname}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[10px] text-muted-foreground italic">Unassigned</span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
                                                         <span className="flex items-center text-[10px] text-muted-foreground">
-                                                            <Paperclip className="w-3 h-3 mr-1" />
-                                                            {task.attachments}
+                                                            <Calendar className="w-3 h-3 mr-1" />
+                                                            {new Date(task.duedate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                         </span>
-                                                    )}
-                                                    <span className="flex items-center text-[10px] text-muted-foreground">
-                                                        <MessageSquare className="w-3 h-3 mr-1" />
-                                                        {task.comments}
-                                                    </span>
-                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${task.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                        }`}>
-                                                        {task.priority}
-                                                    </span>
+
+                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-medium ${task.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                                                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                            }`}>
+                                                            {task.priority}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}

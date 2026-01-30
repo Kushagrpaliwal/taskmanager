@@ -11,7 +11,8 @@ type taskBody = {
     priority: string,
     assignee: string,
     status: string,
-    tags?: string
+    tags?: string,
+    duedate: string
 }
 
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -32,27 +33,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Unauthorized Access" }, { status: HTTP_STATUS.UNAUTHORIZED })
         }
 
-        const membercode = payload.memcode;
+        const assignbymembercode = payload.memcode;
 
         const companycode = payload.companycode;
 
-        const userId = payload.userId;
-        const userResult = await sql`SELECT firstname, lastname FROM users WHERE id = ${userId}`;
-        if (userResult.length === 0) {
-            return NextResponse.json({ error: "User Not Found" }, { status: HTTP_STATUS.NOT_FOUND });
-        }
-        const user = userResult[0];
-        const assignby = `${user.firstname} ${user.lastname}`;
-
         const taskcode = `TASK-${randomUUID().slice(0, 8).toUpperCase()}`
 
-        const { topic, description, priority, assignee, status, tags }: taskBody = await req.json();
+        const { topic, description, priority, assignee, status, tags, duedate }: taskBody = await req.json();
 
         // Ensure all values match the columns:
         // topic, description, priority, assignby, assignee, companycode, taskcode, status, tags
         const res = await sql`
-            INSERT INTO task (topic, description, priority, assignby , assignee, companycode , taskcode , status , tags ) 
-            VALUES (${topic}, ${description}, ${priority}, ${assignby}, ${assignee}, ${companycode} , ${taskcode}, ${status}, ${tags ?? null})
+            INSERT INTO task (topic, description, priority, assignby , assignee, companycode , taskcode , status , tags , duedate ) 
+            VALUES (${topic}, ${description}, ${priority}, ${assignbymembercode}, ${assignee}, ${companycode} , ${taskcode}, ${status}, ${tags ?? null} , ${duedate})
         `
 
         return NextResponse.json({ success: "Task Created SuccessFully", res }, { status: HTTP_STATUS.OK })
