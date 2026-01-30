@@ -1,11 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Plus,
     Search,
@@ -15,7 +33,31 @@ import {
     MessageSquare,
     Paperclip,
     Layout,
+    User,
+    AlertCircle,
+    Check,
+    X,
 } from "lucide-react";
+
+interface User {
+    id: string;
+    membercode: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    role: string;
+    status?: string;
+}
+
+interface NewTaskForm {
+    title: string;
+    description: string;
+    assignedTo: string;
+    priority: "low" | "medium" | "high";
+    status: "todo" | "inprogress" | "done";
+    dueDate: string;
+    tags: string;
+}
 
 const tasks = [
     {
@@ -93,6 +135,85 @@ const columns = [
 ];
 
 export default function TasksPage() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [members, setMembers] = useState<User[]>([]);
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+    const [memberSearchQuery, setMemberSearchQuery] = useState("");
+    const [roleFilter, setRoleFilter] = useState<string>("all");
+    const [formData, setFormData] = useState<NewTaskForm>({
+        title: "",
+        description: "",
+        assignedTo: "",
+        priority: "medium",
+        status: "todo",
+        dueDate: "",
+        tags: "",
+    });
+
+    useEffect(() => {
+        fetchMembers();
+    }, []);
+
+    const fetchMembers = async () => {
+        setIsLoadingMembers(true);
+        try {
+            const res = await fetch("/api/getUsers");
+            const data = await res.json();
+            if (data.res) {
+                setMembers(data.res);
+            }
+        } catch (error) {
+            console.error("Failed to fetch members:", error);
+        } finally {
+            setIsLoadingMembers(false);
+        }
+    };
+
+    // Filter members based on search query and role filter
+    const filteredMembers = members.filter((member) => {
+        const matchesSearch =
+            `${member.firstname} ${member.lastname}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+            member.email.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+            member.membercode.toLowerCase().includes(memberSearchQuery.toLowerCase());
+
+        const matchesRole = roleFilter === "all" || member.role === roleFilter;
+
+        return matchesSearch && matchesRole;
+    });
+
+    // Get unique roles for filter
+    const uniqueRoles = Array.from(new Set(members.map(m => m.role))).sort();
+
+    // Get selected member details
+    const selectedMember = members.find(m => m.membercode === formData.assignedTo);
+
+    const handleInputChange = (field: keyof NewTaskForm, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = async () => {
+        // Validate required fields
+        if (!formData.title || !formData.description || !formData.assignedTo || !formData.dueDate) {
+            alert("Please fill in all required fields");
+            return;
+        }
+
+        // TODO: Add API call to create task
+        console.log("Creating task:", formData);
+
+        // Reset form and close modal
+        setFormData({
+            title: "",
+            description: "",
+            assignedTo: "",
+            priority: "medium",
+            status: "todo",
+            dueDate: "",
+            tags: "",
+        });
+        setIsModalOpen(false);
+    };
+
     return (
         <AppLayout>
             <div className="h-[calc(100vh-2rem)] flex flex-col">
@@ -120,10 +241,271 @@ export default function TasksPage() {
                                 <Filter className="w-3.5 h-3.5 mr-2" />
                                 Filter
                             </Button>
-                            <Button size="sm" className="flex-1 sm:flex-none h-8 rounded-sm bg-primary text-primary-foreground text-xs font-medium shadow-none">
-                                <Plus className="w-3.5 h-3.5 mr-2" />
-                                New Task
-                            </Button>
+                            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="sm" className="flex-1 sm:flex-none h-8 rounded-sm bg-primary text-primary-foreground text-xs font-medium shadow-none">
+                                        <Plus className="w-3.5 h-3.5 mr-2" />
+                                        New Task
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-xl font-bold">Create New Task</DialogTitle>
+                                        <DialogDescription>
+                                            Fill in the details below to create a new task for your team.
+                                        </DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="grid gap-6 py-4">
+                                        {/* Title */}
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="title" className="text-sm font-medium flex items-center gap-1">
+                                                Topic/Title <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Input
+                                                id="title"
+                                                placeholder="Enter task title..."
+                                                value={formData.title}
+                                                onChange={(e) => handleInputChange("title", e.target.value)}
+                                                className="h-9 rounded-sm"
+                                            />
+                                        </div>
+
+                                        {/* Description */}
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="description" className="text-sm font-medium flex items-center gap-1">
+                                                Description <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Textarea
+                                                id="description"
+                                                placeholder="Describe the task in detail..."
+                                                value={formData.description}
+                                                onChange={(e) => handleInputChange("description", e.target.value)}
+                                                className="min-h-[100px] rounded-sm resize-none"
+                                            />
+                                        </div>
+
+                                        {/* Assignee Selection - Same UI as Teams Modal */}
+                                        <div className="grid gap-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-sm font-medium flex items-center gap-1">
+                                                    Assign To <span className="text-red-500">*</span>
+                                                </Label>
+                                                {formData.assignedTo && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 text-xs text-muted-foreground hover:text-foreground"
+                                                        onClick={() => handleInputChange("assignedTo", "")}
+                                                    >
+                                                        <X className="w-3 h-3 mr-1" />
+                                                        Clear
+                                                    </Button>
+                                                )}
+                                            </div>
+
+                                            {/* Search Bar */}
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="Search members..."
+                                                    value={memberSearchQuery}
+                                                    onChange={(e) => setMemberSearchQuery(e.target.value)}
+                                                    className="pl-10 h-9"
+                                                />
+                                            </div>
+
+                                            {/* Role Filter */}
+                                            <div className="flex items-center gap-2">
+                                                <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="all">All Roles</SelectItem>
+                                                        {uniqueRoles.map((role) => (
+                                                            <SelectItem key={role} value={role}>
+                                                                {role}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <span className="text-xs text-muted-foreground ml-auto shrink-0">
+                                                    {filteredMembers.length} of {members.length}
+                                                </span>
+                                            </div>
+
+                                            {/* Members List - Same style as Teams Modal */}
+                                            <div className="border border-border rounded-lg overflow-hidden h-[280px] overflow-y-auto bg-background">
+                                                {isLoadingMembers ? (
+                                                    <div className="p-8 text-center">
+                                                        <div className="animate-pulse space-y-3">
+                                                            <div className="h-12 bg-secondary rounded"></div>
+                                                            <div className="h-12 bg-secondary rounded"></div>
+                                                            <div className="h-12 bg-secondary rounded"></div>
+                                                        </div>
+                                                    </div>
+                                                ) : filteredMembers.length === 0 ? (
+                                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                                        <User className="w-8 h-8 mb-2 opacity-50" />
+                                                        <p className="text-sm font-medium">
+                                                            {memberSearchQuery || roleFilter !== "all"
+                                                                ? "No matches found"
+                                                                : "No members available"}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="divide-y divide-border">
+                                                        {filteredMembers.map((member) => {
+                                                            const isSelected = formData.assignedTo === member.membercode;
+                                                            return (
+                                                                <div
+                                                                    key={member.membercode}
+                                                                    onClick={() => handleInputChange("assignedTo", member.membercode)}
+                                                                    className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${isSelected ? "bg-primary/5" : "hover:bg-secondary/50"
+                                                                        }`}
+                                                                >
+                                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                                                                        {member.firstname[0]}{member.lastname[0]}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-sm font-medium text-foreground truncate">
+                                                                            {member.firstname} {member.lastname}
+                                                                        </p>
+                                                                        <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                                                                    </div>
+                                                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground bg-secondary px-2 py-1 rounded-full shrink-0">
+                                                                        {member.role}
+                                                                    </span>
+                                                                    {isSelected && (
+                                                                        <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                                                            <svg className="w-2.5 h-2.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                            </svg>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Priority and Status Row */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* Priority */}
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="priority" className="text-sm font-medium flex items-center gap-1">
+                                                    Priority <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Select
+                                                    value={formData.priority}
+                                                    onValueChange={(value) => handleInputChange("priority", value as NewTaskForm["priority"])}
+                                                >
+                                                    <SelectTrigger id="priority" className="h-9 rounded-sm">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="low">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                                Low
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                                                Medium
+                                                            </div>
+                                                        </SelectItem>
+                                                        <SelectItem value="high">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                                                High
+                                                            </div>
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {/* Status */}
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="status" className="text-sm font-medium flex items-center gap-1">
+                                                    Status <span className="text-red-500">*</span>
+                                                </Label>
+                                                <Select
+                                                    value={formData.status}
+                                                    onValueChange={(value) => handleInputChange("status", value as NewTaskForm["status"])}
+                                                >
+                                                    <SelectTrigger id="status" className="h-9 rounded-sm">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="todo">To Do</SelectItem>
+                                                        <SelectItem value="inprogress">In Progress</SelectItem>
+                                                        <SelectItem value="done">Done</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        {/* Due Date */}
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="dueDate" className="text-sm font-medium flex items-center gap-1">
+                                                Due Date <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Input
+                                                id="dueDate"
+                                                type="date"
+                                                value={formData.dueDate}
+                                                onChange={(e) => handleInputChange("dueDate", e.target.value)}
+                                                className="h-9 rounded-sm"
+                                                min={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </div>
+
+                                        {/* Tags */}
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="tags" className="text-sm font-medium">
+                                                Tags (Optional)
+                                            </Label>
+                                            <Input
+                                                id="tags"
+                                                placeholder="e.g., Design, Frontend, Bug (comma separated)"
+                                                value={formData.tags}
+                                                onChange={(e) => handleInputChange("tags", e.target.value)}
+                                                className="h-9 rounded-sm"
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Separate multiple tags with commas
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter className="gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="h-9 rounded-sm"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            onClick={handleSubmit}
+                                            className="h-9 rounded-sm bg-primary"
+                                            disabled={!formData.title || !formData.description || !formData.assignedTo || !formData.dueDate}
+                                        >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Create Task
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </div>

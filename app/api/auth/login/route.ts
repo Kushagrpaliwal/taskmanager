@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
         // 2️⃣ Find user
         const existinguser = await sql`
-      SELECT id, password FROM users WHERE email = ${email}
+      SELECT id, password , memberCode, companyCode FROM users WHERE email = ${email}
     `;
 
         if (existinguser.length === 0) {
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
         // 2️⃣ Generate ACCESS TOKEN (JWT)
         const accessToken = jwt.sign(
-            { userId: user.id },
+            { userId: user.id, memcode: user.membercode, companycode: user.companycode },
             JWT_SECRET,
             { expiresIn: "15m" }
         )
@@ -55,8 +55,8 @@ export async function POST(req: Request) {
         refreshExpire.setDate(refreshExpire.getDate() + 30);
 
         await sql`
-            INSERT INTO refresh_tokens (user_id,token,expires_at)
-            values(${user.id},${refreshToken},${refreshExpire})
+            INSERT INTO refresh_tokens (user_id,token,memberCode,companycode,expires_at)
+            values(${user.id},${refreshToken},${user.membercode},${user.companycode},${refreshExpire})
         `
 
         const cookieStore = await cookies();

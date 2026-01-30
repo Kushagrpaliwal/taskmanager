@@ -12,10 +12,22 @@ const token = async () => {
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `
+
+        await sql`
+            ALTER TABLE refresh_tokens
+            ADD COLUMN IF NOT EXISTS memberCode VARCHAR(255) UNIQUE;
+        `
+        await sql`
+            ALTER TABLE refresh_tokens
+            ADD COLUMN IF NOT EXISTS companycode VARCHAR(255) UNIQUE;
+        `
+
         console.log("Table Created Successfully")
+        sql.end()
 
     } catch (error) {
         console.log("Error Creating the table")
+        sql.end();
     }
 
 }

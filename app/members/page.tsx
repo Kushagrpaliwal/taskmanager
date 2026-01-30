@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
     Table,
@@ -26,6 +24,13 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     Plus,
     Search,
     MoreHorizontal,
@@ -33,66 +38,52 @@ import {
     Filter,
     Users,
     Loader2,
+    Trash2,
+    Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
-
-const members = [
-    {
-        id: 1,
-        name: "Sarah Chen",
-        email: "sarah.chen@acme.com",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        role: "Admin",
-        team: "Design Team",
-        status: "active",
-        joinedDate: "Jan 2024",
-    },
-    {
-        id: 2,
-        name: "Michael Ross",
-        email: "michael.ross@acme.com",
-        avatar: "https://i.pravatar.cc/150?img=3",
-        role: "Member",
-        team: "Engineering",
-        status: "active",
-        joinedDate: "Feb 2024",
-    },
-    {
-        id: 3,
-        name: "Emma Wilson",
-        email: "emma.wilson@acme.com",
-        avatar: "https://i.pravatar.cc/150?img=5",
-        role: "Admin",
-        team: "Product",
-        status: "active",
-        joinedDate: "Mar 2024",
-    },
-];
-
 export default function MembersPage() {
-    const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [editingMember, setEditingMember] = useState<any>(null);
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
+        role: "Employee",
     });
 
-    const [users, setUsers] = useState([])
+    interface User {
+        id: string,
+        firstname: string,
+        lastname: string,
+        email: string,
+        role: string,
+        team: string,
+        status: string,
+        created_at: Date,
+    }
 
-    const toggleMember = (id: number) => {
-        setSelectedMembers((prev) =>
-            prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
-        );
-    };
+    const [users, setUsers] = useState<User[]>([])
 
-    const toggleAll = () => {
-        setSelectedMembers((prev) =>
-            prev.length === members.length ? [] : members.map((m) => m.id)
-        );
-    };
+    const fetchusers = async (): Promise<void> => {
+        try {
+
+            const res = await fetch("/api/getUsers");
+            const data = await res.json();
+            setUsers(data.res || [])
+            console.log("Fetched users", data.res)
+
+        } catch (error) {
+            console.log("Users Unable To Fetch")
+        }
+    }
+
+    useEffect(() => {
+        fetchusers();
+    }, [])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -105,6 +96,7 @@ export default function MembersPage() {
             lastName: "",
             email: "",
             password: "",
+            role: "Employee",
         });
     };
 
@@ -134,7 +126,7 @@ export default function MembersPage() {
 
         try {
             // Simulate API call - replace with actual API call
-            await fetch("http://127.0.0.1:8000/users", {
+            await fetch("/api/addMembers", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -143,6 +135,7 @@ export default function MembersPage() {
                     firstname: formData.firstName,
                     lastname: formData.lastName,
                     email: formData.email,
+                    role: formData.role,
                     password: formData.password,
                 }),
             });
@@ -157,6 +150,30 @@ export default function MembersPage() {
             toast.error("Failed to add member", {
                 description: "Something went wrong. Please try again.",
             });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleEditClick = (member: any) => {
+
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateMember = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            console.log("Updating member:", { id: editingMember.id, ...formData });
+            toast.success("Member updated successfully!", {
+                description: `${formData.firstName} ${formData.lastName} has been updated.`,
+            });
+            setIsEditModalOpen(false);
+            setEditingMember(null);
+            resetForm();
+        } catch (error) {
+            toast.error("Failed to update member");
         } finally {
             setIsLoading(false);
         }
@@ -243,6 +260,22 @@ export default function MembersPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                        <Select
+                                            value={formData.role}
+                                            onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                                        >
+                                            <SelectTrigger id="role" className="h-9">
+                                                <SelectValue placeholder="Select a role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Team Lead">Team Lead</SelectItem>
+                                                <SelectItem value="Manager">Manager</SelectItem>
+                                                <SelectItem value="Employee">Employee</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
                                         <Label htmlFor="password">Password</Label>
                                         <Input
                                             id="password"
@@ -290,74 +323,181 @@ export default function MembersPage() {
                         <Table>
                             <TableHeader className="bg-secondary/30">
                                 <TableRow className="hover:bg-transparent border-border">
-                                    <TableHead className="w-12">
+                                    {/* <TableHead className="w-12">
                                         <Checkbox
                                             checked={selectedMembers.length === members.length}
                                             onCheckedChange={toggleAll}
                                             className="rounded-sm border-muted-foreground"
                                         />
-                                    </TableHead>
+                                    </TableHead> */}
                                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Member</TableHead>
                                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Role</TableHead>
                                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Team</TableHead>
                                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Status</TableHead>
                                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Joined</TableHead>
-                                    <TableHead className="w-12"></TableHead>
+                                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {members.map((member) => (
-                                    <TableRow key={member.id} className="group hover:bg-secondary/20 border-border">
-                                        <TableCell>
+                                {users.length > 0 ? (
+                                    users.map((member) => (
+                                        <TableRow key={member.id} className="group hover:bg-secondary/20 border-border">
+                                            {/* <TableCell>
                                             <Checkbox
                                                 checked={selectedMembers.includes(member.id)}
                                                 onCheckedChange={() => toggleMember(member.id)}
                                                 className="rounded-sm border-muted-foreground"
                                             />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8 border border-border rounded-sm">
+                                        </TableCell> */}
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    {/* <Avatar className="h-8 w-8 border border-border rounded-sm">
                                                     <AvatarImage src={member.avatar} />
                                                     <AvatarFallback className="text-[10px]">{member.name[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-medium text-sm text-foreground whitespace-nowrap">{member.name}</p>
-                                                    <p className="text-xs text-muted-foreground whitespace-nowrap">{member.email}</p>
+                                                </Avatar> */}
+                                                    <div>
+                                                        <p className="font-medium text-sm text-foreground whitespace-nowrap">{member.firstname} {member.lastname}</p>
+                                                        <p className="text-xs text-muted-foreground whitespace-nowrap">{member.email}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant="secondary"
-                                                className="rounded-sm font-normal text-xs"
-                                            >
-                                                {member.role}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground whitespace-nowrap">{member.team}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                                <span className="text-sm text-foreground capitalize">{member.status}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground whitespace-nowrap">{member.joinedDate}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                                            </Button>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="rounded-sm font-normal text-xs"
+                                                >
+                                                    {member.role}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm text-muted-foreground whitespace-nowrap">{member.team}</span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                                    <span className="text-sm text-foreground capitalize">{member.status}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm text-muted-foreground whitespace-nowrap">{(new Date(member.created_at)).toLocaleDateString()}</span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                                        onClick={() => handleEditClick(member)}
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                                            No members found
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </div>
                 </div>
+                {/* Edit Member Modal */}
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit Member</DialogTitle>
+                            <DialogDescription>
+                                Update the member's details.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleUpdateMember} className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-firstName">First Name</Label>
+                                    <Input
+                                        id="edit-firstName"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleInputChange}
+                                        disabled={isLoading}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-lastName">Last Name</Label>
+                                    <Input
+                                        id="edit-lastName"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleInputChange}
+                                        disabled={isLoading}
+                                        className="h-9"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-email">Email</Label>
+                                <Input
+                                    id="edit-email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    disabled={isLoading}
+                                    className="h-9"
+                                />
+                            </div>
+                            {/* <div className="space-y-2">
+                                <Label htmlFor="edit-role">Role</Label>
+                                <Select
+                                    value={formData.role}
+                                    onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                                >
+                                    <SelectTrigger id="edit-role" className="h-9">
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Team Lead">Team Lead</SelectItem>
+                                        <SelectItem value="Manager">Manager</SelectItem>
+                                        <SelectItem value="Employee">Employee</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div> */}
+                            <DialogFooter className="pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsEditModalOpen(false);
+                                        setEditingMember(null);
+                                        resetForm();
+                                    }}
+                                    disabled={isLoading}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Updating...
+                                        </>
+                                    ) : (
+                                        "Save Changes"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

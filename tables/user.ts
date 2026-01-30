@@ -21,7 +21,7 @@ const table = async () => {
         `
         await sql`
          ALTER TABLE users
-         ADD COLUMN IF NOT EXISTS team VARCHAR(255) 
+         ADD COLUMN IF NOT EXISTS team VARCHAR(255) DEFAULT 'none'
         `
         await sql`
          ALTER TABLE users
@@ -30,6 +30,16 @@ const table = async () => {
         await sql`
          ALTER TABLE users
          ADD COLUMN IF NOT EXISTS companyCode VARCHAR(20) UNIQUE
+        `;
+
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS teamCode VARCHAR(20) UNIQUE
+        `;
+
+        await sql`
+         ALTER TABLE users
+         ADD COLUMN IF NOT EXISTS memberCode VARCHAR(20) UNIQUE
         `;
 
         console.log("Table Created Successfully")

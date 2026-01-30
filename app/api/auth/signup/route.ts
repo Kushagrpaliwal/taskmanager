@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import { HTTP_STATUS } from "@/lib/httpStatus";
+import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
     try {
@@ -39,9 +40,11 @@ export async function POST(req: Request) {
             `
         }
 
+        const membercode = `MEM-${randomUUID().slice(0, 8).toUpperCase()}`;
+
         const user = await sql`
-          INSERT INTO users (firstname,lastname,email,password,companyCode) VALUES (${firstname} , ${lastname} , ${email} , ${password} , ${code})
-          RETURNING id , firstname , lastname , email , companyCode 
+          INSERT INTO users (firstname,lastname,email,password,companyCode,memberCode) VALUES (${firstname} , ${lastname} , ${email} , ${password} , ${code} , ${membercode})
+          RETURNING id , firstname , lastname , email , companyCode , memberCode
         `
 
         return NextResponse.json({ sucess: user }, { status: HTTP_STATUS.CREATED })

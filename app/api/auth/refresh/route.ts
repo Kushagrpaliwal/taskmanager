@@ -16,7 +16,7 @@ async function refreshTokens() {
     }
 
     const tokens = await sql`
-            SELECT id , user_id , expires_at FROM refresh_tokens WHERE token = ${refreshToken}
+            SELECT id , user_id , memberCode , expires_at FROM refresh_tokens WHERE token = ${refreshToken}
         `
 
     if (tokens.length === 0) {
@@ -35,7 +35,7 @@ async function refreshTokens() {
     await sql` DELETE FROM refresh_tokens WHERE token = ${token.id}`
 
     const newAccessToken = jwt.sign(
-        { user_id: token.user_id },
+        { userId: token.user_id, memCode: token.membercode },
         JWT_SECRET,
         { expiresIn: "15m" }
     )
@@ -46,7 +46,7 @@ async function refreshTokens() {
     newRefreshExpiry.setDate(newRefreshExpiry.getDate() + 30);
 
     await sql`
-            INSERT INTO refresh_tokens (user_id , token , expires_at) values (${token.user_id},${newRefreshToken},${newRefreshExpiry})
+            INSERT INTO refresh_tokens (user_id , token , memberCode, expires_at) values (${token.user_id},${newRefreshToken},${token.membercode},${newRefreshExpiry})
         `
 
     cookieStore.set("access_token", newAccessToken, {
