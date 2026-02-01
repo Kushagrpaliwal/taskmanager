@@ -26,6 +26,11 @@ const task = async () => {
                 ADD COLUMN IF NOT EXISTS duedate DATE ;
         `
 
+        await sql`
+            ALTER TABLE task
+             ADD COLUMN IF NOT EXISTS seen BOOLEAN DEFAULT FALSE ;
+        `
+
         console.log("Table created successfully")
         sql.end()
     } catch (error) {

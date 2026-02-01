@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         const code = row[0].companycode;
 
         const res = await sql`
-            SELECT id , topic , description , priority , assignby , assignee , companycode , taskcode , status , tags , duedate FROM task WHERE companycode = ${code} AND assignee = ${membercode} ORDER BY created_at DESC
+            SELECT id , topic , description , priority , assignby , assignee , companycode , taskcode , status , tags , duedate , seen , created_at FROM task WHERE companycode = ${code} AND assignee = ${membercode} ORDER BY created_at DESC
         `
         return NextResponse.json({ sucess: "Data Fetched Success", res }, { status: HTTP_STATUS.OK })
 

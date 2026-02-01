@@ -41,7 +41,7 @@ export const navigation = [
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Members", href: "/members", icon: UserCircle },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Notifications", href: "/activity", icon: Bell },
+    { name: "Notifications", href: "/notifications", icon: Bell },
 ];
 
 export function Sidebar() {
@@ -114,7 +114,8 @@ export function Sidebar() {
                                 "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 isActive
                                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                                    : "text-muted-foreground"
+                                    : "text-muted-foreground",
+                                collapsed && "justify-center px-2"
                             )}
                         >
                             <item.icon className={cn("w-4 h-4 shrink-0 opacity-70")} />
@@ -135,7 +136,8 @@ export function Sidebar() {
                     }}
                     className={cn(
                         "w-full flex items-center gap-3 px-3 py-1.5 rounded-sm text-sm transition-colors",
-                        "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-left"
+                        "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-left",
+                        collapsed && "justify-center px-2"
                     )}
                 >
                     <LogOut className="w-4 h-4 shrink-0 opacity-70" />

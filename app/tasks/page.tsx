@@ -187,9 +187,9 @@ export default function TasksPage() {
 
     return (
         <AppLayout>
-            <div className="h-[calc(100vh-2rem)] flex flex-col">
+            <div className="flex flex-col h-[calc(100vh-9rem)] w-full">
                 {/* Header */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-border pb-4 px-4 md:px-6 pt-2">
+                <div className="shrink-0 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-border pb-4 px-4 md:px-6 pt-2">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 flex items-center justify-center rounded bg-secondary text-primary">
                             <Layout className="w-5 h-5" />
@@ -482,11 +482,11 @@ export default function TasksPage() {
                 </div>
 
                 {/* Kanban Board */}
-                <div className="flex-1 overflow-x-auto">
-                    <div className="h-full flex gap-6 p-6 min-w-[1000px]">
+                <div className="flex-1 overflow-x-auto min-h-0">
+                    <div className="h-full flex gap-6 p-4 min-w-[1000px]">
                         {columns.map((column) => (
-                            <div key={column.id} className="flex-1 min-w-[300px] flex flex-col gap-4">
-                                <div className="flex items-center justify-between pb-2 border-b-2 border-transparent hover:border-border transition-colors">
+                            <div key={column.id} className="flex-1 min-w-[300px] flex flex-col gap-4 h-full">
+                                <div className="shrink-0 flex items-center justify-between pb-2 border-b-2 border-transparent hover:border-border transition-colors">
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-sm font-semibold text-foreground">{column.title}</h3>
                                         <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-sm">
@@ -498,7 +498,7 @@ export default function TasksPage() {
                                     </Button>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                                     {tasks.filter(t => t.status === column.id).map(task => {
                                         const assigneeUser = members.find(m => m.membercode === task.assignee);
                                         const taskTags = task.tags ? task.tags.split(',').map(t => t.trim()) : [];
