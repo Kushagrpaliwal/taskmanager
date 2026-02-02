@@ -31,7 +31,7 @@ export async function GET(req: Request) {
         const res = await sql`
             SELECT id , firstname , lastname , email , password , created_at , role , team , status , companycode , membercode FROM users WHERE companycode = ${code} ORDER BY created_at DESC
         `
-        return NextResponse.json({ sucess: "Data Fetched Success", res }, { status: HTTP_STATUS.OK })
+        return NextResponse.json({ sucess: "Data Fetched Success", res, currentUser: row[0] }, { status: HTTP_STATUS.OK })
 
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR })

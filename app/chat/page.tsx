@@ -64,32 +64,6 @@ const conversations = [
     },
 ];
 
-const messages = [
-    {
-        id: 1,
-        sender: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        content: "Hey! I've been working on the new dashboard designs. Can you take a look when you have time?",
-        time: "10:30 AM",
-        isMe: false,
-    },
-    {
-        id: 2,
-        sender: "Me",
-        avatar: "",
-        content: "Sure, I'd love to see them! Send them over whenever you're ready.",
-        time: "10:32 AM",
-        isMe: true,
-    },
-    {
-        id: 3,
-        sender: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        content: "Perfect! I'll share the Figma link in a bit.",
-        time: "10:35 AM",
-        isMe: false,
-    },
-];
 
 interface Users {
     id: string,
@@ -108,17 +82,41 @@ interface Users {
 export default function ChatPage() {
     const [selectedConversation, setSelectedConversation] = useState<Users | null>(null);
     const [messageInput, setMessageInput] = useState("");
+    const [socket, setSocket] = useState<WebSocket | null>(null)
+    const [liveMessages, setLiveMessages] = useState<any[]>([])
 
     const [users, setUsers] = useState<Users[]>([]);
+    const [currentUser, setCurrentUser] = useState<Users | null>(null);
+
+    const messages = liveMessages.filter((msg) => {
+        if (!selectedConversation || !currentUser) return false;
+        // Filter messages for the current conversation
+        // 1. Incoming: From selected user to me
+        // 2. Outgoing: From me to selected user
+        const isIncoming = msg.senderid === selectedConversation.membercode && msg.recieverid === currentUser.membercode;
+        const isOutgoing = msg.senderid === currentUser.membercode && msg.recieverid === selectedConversation.membercode;
+        return isIncoming || isOutgoing;
+    }).map((msg) => {
+        const isMe = currentUser && msg.senderid === currentUser.membercode;
+        const sender = users.find((u) => u.membercode === msg.senderid);
+        return {
+            id: msg.id || `${msg.ts}-${msg.senderid}`,
+            content: msg.message,
+            sender: sender ? sender.firstname : "Unknown",
+            time: new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isMe: isMe,
+        };
+    });
 
     const fetchuser = async () => {
         try {
 
             const res = await fetch("/api/getUsers")
             const data = await res.json();
-            setUsers(data.res)
 
-            if (data.ok) {
+            if (res.ok) {
+                setUsers(data.res)
+                setCurrentUser(data.currentUser)
                 console.log("Users Fetched SuccessFully", data.res)
             } else {
                 console.log("Unable to fetch the user data")
@@ -129,9 +127,55 @@ export default function ChatPage() {
         }
     }
 
+    const sendMessage = () => {
+        if (!socket || !selectedConversation || !messageInput.trim()) {
+            return;
+        }
+
+        socket.send(JSON.stringify({
+            recieverid: selectedConversation.membercode,
+            message: messageInput
+        }))
+
+        setMessageInput("");
+    }
+
     useEffect(() => {
         fetchuser();
     }, [])
+
+    useEffect(() => {
+        const ws = new WebSocket("ws://localhost:4657/ws");
+
+        ws.onopen = () => {
+            console.log("🟢 WS connected");
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("📩 Message received via WebSocket:", data);
+
+            setLiveMessages((prev) => {
+                // Prevent duplicate messages by checking if ID already exists
+                const msgId = data.id || `${data.ts}-${data.senderid}`;
+                if (prev.some((m) => (m.id || `${m.ts}-${m.senderid}`) === msgId)) {
+                    console.log("⚠️ Duplicate message ignored:", msgId);
+                    return prev;
+                }
+                return [...prev, data];
+            });
+        };
+
+        ws.onclose = () => {
+            console.log("🔴 WS disconnected");
+        };
+
+        setSocket(ws);
+
+        return () => ws.close();
+    }, []);
+
+
 
     return (
         <AppLayout>
@@ -289,8 +333,8 @@ export default function ChatPage() {
                                                 className={cn(
                                                     "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
                                                     message.isMe
-                                                        ? "bg-primary text-primary-foreground rounded-br-sm"
-                                                        : "bg-muted text-foreground rounded-bl-sm"
+                                                        ? "bg-black text-white rounded-br-sm"
+                                                        : "bg-white text-black border border-input rounded-bl-sm"
                                                 )}
                                             >
                                                 {message.content}
@@ -328,7 +372,7 @@ export default function ChatPage() {
                                         <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg">
                                             <Smile className="h-5 w-5" />
                                         </Button>
-                                        <Button size="icon" className="h-8 w-8 rounded-lg">
+                                        <Button size="icon" className="h-8 w-8 rounded-lg" onClick={sendMessage}>
                                             <Send className="h-4 w-4" />
                                         </Button>
                                     </div>
